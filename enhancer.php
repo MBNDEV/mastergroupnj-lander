@@ -10,14 +10,19 @@ function mbn_end_output_buffering($html) {
     return $html;
   }
 
-  // Defer all script tags unless they already have defer or async
+  // Defer all script tags unless they already have defer or async,
+  // but exclude if script src contains any exclusions (like wp-includes).
+  $defer_exclusions = [
+    'wp-includes',
+    // add other exclusions as needed
+  ];
   $html = preg_replace_callback(
     '/<script\b([^>]*)>/i',
-    function ($matches) {
-      $tag = $matches[0];
+    function ($matches) use ($defer_exclusions) {
+      $tag   = $matches[0];
       $attrs = $matches[1];
 
-      // Don't add defer to scripts that have src and already have defer or async
+      // Don't add defer to scripts that already have defer or async
       if (
         stripos($attrs, ' defer') !== false ||
         stripos($attrs, ' async') !== false
@@ -26,7 +31,13 @@ function mbn_end_output_buffering($html) {
       }
 
       // Only add defer to scripts with a src attribute (external scripts)
-      if (preg_match('/\ssrc\s*=\s*["\']?[^"\'>\s]+/i', $attrs)) {
+      if (preg_match('/\ssrc\s*=\s*["\']?([^"\' >\s]+)/i', $attrs, $srcMatch)) {
+        $src = $srcMatch[1];
+        foreach ($defer_exclusions as $ex) {
+          if (stripos($src, $ex) !== false) {
+            return $tag; // Skip adding defer if src contains exclusion
+          }
+        }
         // Insert defer before closing '>'
         return str_replace('<script', '<script defer', $tag);
       } else {
@@ -65,7 +76,7 @@ function mbn_end_output_buffering($html) {
 
 
   // Define the substrings/needles to search for in scripts
-  $needles = array('gtag', 'gtms.js', 'googletagmanager');
+  $needles = array('gtag', 'gtms.js', 'googletagmanager', 'recaptcha');
 
   // Callback to process <script> tags
   $html = preg_replace_callback(

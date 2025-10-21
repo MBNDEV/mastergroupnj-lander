@@ -25,9 +25,9 @@ echo file_get_contents(get_template_directory() . '/critical/template-thankyou.c
 <link rel="icon" type="image/x-icon" href="<?php echo get_template_directory_uri() ?>/css/img/favicon.ico" />
 <link rel="stylesheet" href="<?php echo get_template_directory_uri() ?>/css/foundation.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="<?php echo get_template_directory_uri() ?>/css/custom.css?ver=<?php echo rand(); ?>" media="print" onload="this.media='all'">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://www.googletagmanager.com">
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
 
 <!-- <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet"> -->
 <link 
