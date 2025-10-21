@@ -76,7 +76,7 @@ function mbn_end_output_buffering($html) {
 
 
   // Define the substrings/needles to search for in scripts
-  $needles = array('gtag', 'gtms.js', 'googletagmanager', 'recaptcha');
+  $needles = array('gtag', 'gtm.js', 'googletagmanager', 'recaptcha');
 
   // Callback to process <script> tags
   $html = preg_replace_callback(
@@ -122,6 +122,61 @@ function mbn_end_output_buffering($html) {
               // Leave unchanged
               return $matches[0];
           }
+      },
+      $html
+  );
+
+
+  // Modify all <img> tags: replace src/srcset with data-src/data-srcset, set src to base64 dot placeholder,
+  // add lazyload class and noscript except for loading="eager" or class="no-lazyload"
+  $html = preg_replace_callback(
+      '#<img\s+[^>]*?>#is',
+      function($matches) {
+          $img_tag = $matches[0];
+
+          // If loading="eager" or class contains no-lazyload, skip processing
+          if (preg_match('/loading\s*=\s*["\']eager["\']/i', $img_tag) ||
+              preg_match('/class\s*=\s*["\'][^"\']*\bno-lazyload\b[^"\']*["\']/i', $img_tag)) {
+              return $img_tag;
+          }
+
+          $dot_placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
+          $new_tag = $img_tag;
+
+          // Replace src/srcset with data-src/data-srcset
+          $new_tag = preg_replace('/\s(src)\s*=\s*([\'"])(.*?)\2/i', ' data-src=$2$3$2', $new_tag);
+          $new_tag = preg_replace('/\s(srcset)\s*=\s*([\'"])(.*?)\2/i', ' data-srcset=$2$3$2', $new_tag);
+
+          // Add lazyload class to class attribute, or create class if missing
+          if (preg_match('/class\s*=\s*["\']([^"\']*)["\']/i', $new_tag, $class_match)) {
+              $classes = $class_match[1];
+              if (!preg_match('/\blazyload\b/', $classes)) {
+                  $new_classes = trim($classes . ' lazyload');
+                  $new_tag = preg_replace('/class\s*=\s*["\'][^"\']*["\']/', 'class="' . $new_classes . '"', $new_tag, 1);
+              }
+          } else {
+              // Add class attribute
+              $new_tag = preg_replace('/<img/i', '<img class="lazyload"', $new_tag, 1);
+          }
+
+          // Remove any existing src/srcset attributes (for cleanliness)
+          $new_tag = preg_replace('/\s(src|srcset)\s*=\s*([\'"]).*?\2/i', '', $new_tag);
+
+          // Insert src="dot_placeholder" just after <img and class if present
+          if (preg_match('/<img\s+[^>]*class=[\'"][^\'"]*[\'"]/i', $new_tag)) {
+              // After class
+              $new_tag = preg_replace('/(class\s*=\s*["\'][^"\']*["\'])/i', '$1 src="' . $dot_placeholder . '"', $new_tag, 1);
+          } else {
+              // Right after <img
+              $new_tag = preg_replace('/<img/i', '<img src="' . $dot_placeholder . '"', $new_tag, 1);
+          }
+
+          // Produce <noscript> version of original
+          $noscript = '<noscript>' . $img_tag . '</noscript>';
+
+          // Return new tag + noscript
+          return $new_tag . $noscript;
       },
       $html
   );
