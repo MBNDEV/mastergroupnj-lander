@@ -76,7 +76,7 @@ function mbn_end_output_buffering($html) {
 
 
   // Define the substrings/needles to search for in scripts
-  $needles = array('gtag', 'gtms.js', 'googletagmanager', 'recaptcha');
+  $needles = array('gtag', 'gtms.js', 'googletagmanager');
 
   // Callback to process <script> tags
   $html = preg_replace_callback(
