@@ -12,6 +12,8 @@ use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
   'landerservice'
 );
 
+require_once get_template_directory() . '/enhancer.php';
+
 remove_action('wp_head', 'wp_generator');
 remove_action('wp_head', 'rsd_link');
 remove_action('wp_head', 'wlwmanifest_link');
@@ -82,45 +84,45 @@ add_action('wp_head', 'landerservice_preload_lcp_background', 1);
 
 
 // HTML OUTPUT COMPRESSION
-function landerservice_start_html_compression() {
-    if ( is_admin() || defined('DOING_AJAX') || defined('REST_REQUEST') ) {
-        return;
-    }
+// function landerservice_start_html_compression() {
+//     if ( is_admin() || defined('DOING_AJAX') || defined('REST_REQUEST') ) {
+//         return;
+//     }
 
-    ob_start('landerservice_compress_html_output');
-}
-add_action('template_redirect', 'landerservice_start_html_compression');
+//     ob_start('landerservice_compress_html_output');
+// }
+// add_action('template_redirect', 'landerservice_start_html_compression');
 
-function landerservice_compress_html_output($buffer) {
-    if ( trim($buffer) === '' ) {
-        return $buffer;
-    }
+// function landerservice_compress_html_output($buffer) {
+//     if ( trim($buffer) === '' ) {
+//         return $buffer;
+//     }
 
-    preg_match_all('/<(script|pre|textarea)[^>]*>.*?<\/\1>/is', $buffer, $matches);
-    $placeholders = [];
+//     preg_match_all('/<(script|pre|textarea)[^>]*>.*?<\/\1>/is', $buffer, $matches);
+//     $placeholders = [];
 
-    foreach ($matches[0] as $i => $match) {
-        $placeholder = "###LANDERSERVICE_HTML_BLOCK_$i###";
-        $placeholders[$placeholder] = $match;
-        $buffer = str_replace($match, $placeholder, $buffer);
-    }
+//     foreach ($matches[0] as $i => $match) {
+//         $placeholder = "###LANDERSERVICE_HTML_BLOCK_$i###";
+//         $placeholders[$placeholder] = $match;
+//         $buffer = str_replace($match, $placeholder, $buffer);
+//     }
 
-    $search = [
-        '/\>[^\S ]+/s',     // remove spaces after tags
-        '/[^\S ]+\</s',     // remove spaces before tags
-        '/(\s)+/s',         // collapse whitespace
-        '/<!--(?!\[if).*?-->/s', // remove comments (except IE)
-    ];
-    $replace = ['>', '<', '\\1', ''];
-    $buffer = preg_replace($search, $replace, $buffer);
+//     $search = [
+//         '/\>[^\S ]+/s',     // remove spaces after tags
+//         '/[^\S ]+\</s',     // remove spaces before tags
+//         '/(\s)+/s',         // collapse whitespace
+//         '/<!--(?!\[if).*?-->/s', // remove comments (except IE)
+//     ];
+//     $replace = ['>', '<', '\\1', ''];
+//     $buffer = preg_replace($search, $replace, $buffer);
 
-    // Restore script and pre blocks
-    foreach ($placeholders as $placeholder => $original) {
-        $buffer = str_replace($placeholder, $original, $buffer);
-    }
+//     // Restore script and pre blocks
+//     foreach ($placeholders as $placeholder => $original) {
+//         $buffer = str_replace($placeholder, $original, $buffer);
+//     }
 
-    return $buffer;
-}
+//     return $buffer;
+// }
 
 
 
