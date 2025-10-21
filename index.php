@@ -546,7 +546,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<?php /* <img src="<?php echo get_template_directory_uri() ?>/images/green-phone.png" alt="phone" /> */ ?>
 				<img 
 				src="<?php echo get_template_directory_uri(); ?>/images/green-phone2.webp"
-				alt="phone" width="36" height="36" decoding="async">
+				alt="phone" width="36" height="36" decoding="async" loading="eager">
 			</a>
 		</div>
 	</div>
