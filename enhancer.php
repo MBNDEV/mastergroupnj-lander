@@ -13,7 +13,7 @@ function mbn_end_output_buffering($html) {
   // Defer all script tags unless they already have defer or async,
   // but exclude if script src contains any exclusions (like wp-includes).
   $defer_exclusions = [
-    'wp-includes',
+    // 'wp-includes',
     // add other exclusions as needed
   ];
   $html = preg_replace_callback(
@@ -180,6 +180,48 @@ function mbn_end_output_buffering($html) {
       },
       $html
   );
+
+
+
+
+  // Wrap inline <script> blocks containing any $needles with DOMContentLoaded, wrapping inside /* <![CDATA[ */
+  $domLoadedJs = array('wp.i18n');
+  $html = preg_replace_callback(
+      '#<script([^>]*)>([\s\S]*?)<\/script>#is',
+      function($m) use ($needles, $domLoadedJs) {
+          $attrs = $m[1];
+          $body = $m[2];
+
+          // Only wrap if this is not an external script (no src attribute)
+          if (stripos($attrs, 'src=') === false) {
+              // Check if any domLoadedJs matches in script body
+              $matches_domLoaded = false;
+              foreach ($domLoadedJs as $needle) {
+                  if (stripos($body, $needle) !== false) {
+                      $matches_domLoaded = true;
+                      break;
+                  }
+              }
+              
+              if ($matches_domLoaded) {
+                  // Only wrap if not already wrapped in DOMContentLoaded
+                  if (strpos($body, 'document.addEventListener("DOMContentLoaded"') === false 
+                      && strpos($body, "document.addEventListener('DOMContentLoaded'") === false) {
+                      return '<script' . $attrs . '>' . "\n"
+                          . 'document.addEventListener("DOMContentLoaded", function() {' . "\n"
+                          . $body . "\n"
+                          . '});' . "\n"
+                          . '</script>';
+                  }
+              }
+          }
+          // Otherwise, leave as is
+          return $m[0];
+      },
+      $html
+  );
+
+
 
   return $html;
 }
